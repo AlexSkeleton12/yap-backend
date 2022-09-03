@@ -1,11 +1,16 @@
 var createError = require('http-errors');
 var express = require('express');
+var cors = require('cors');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var fs = require('fs');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+
+var rawData = fs.readFileSync('database.json');
+var database = JSON.parse(rawData);
 
 var app = express();
 
@@ -13,6 +18,7 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+app.use(cors())
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -24,10 +30,19 @@ app.use('/users', usersRouter);
 
 app.get('/getURL', (req, res) => {
   if (req.get('auth') == 'Xj9ZMHqGR9HqhgDblEE4') {
-    res.send(true);
+    res.send('https://youreaputz.net/admindev/prev-' + req.get('auth'));
   } else {
-    res.send(false);
+    res.send('https://youreaputz.net/admindev/err');
   }
+});
+
+app.get('/getDB', (req, res) => {
+  res.json(JSON.stringify(database));
+});
+
+app.post('/postDB', (req, res) => {
+  database.push(req.body);
+  fs.writeFile('database.json', JSON.stringify(database));
 });
 
 // catch 404 and forward to error handler
